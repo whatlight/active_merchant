@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'pry'
 
 class RemoteAdyenTest < Test::Unit::TestCase
   def setup
@@ -89,6 +90,14 @@ class RemoteAdyenTest < Test::Unit::TestCase
       :year               => '2018',
       :source             => :apple_pay,
       :verification_value => nil
+    )
+
+    @network_token = network_tokenization_credit_card('4111111111111111',
+      :payment_cryptogram => 'AO9soaCOdY3nAAH6nMzgGgADFA==',
+      :month              => '08',
+      :year               => '2020',
+      :brand              => 'visa',
+      :verification_value => '737'
     )
 
     @google_pay_card = network_tokenization_credit_card('4111111111111111',
@@ -397,6 +406,12 @@ class RemoteAdyenTest < Test::Unit::TestCase
 
   def test_successful_purchase_with_apple_pay
     response = @gateway.purchase(@amount, @apple_pay_card, @options)
+    assert_success response
+    assert_equal '[capture-received]', response.message
+  end
+
+  def test_successful_purchase_with_network_token
+    response = @gateway.purchase(@amount, @network_token, @options, true)
     assert_success response
     assert_equal '[capture-received]', response.message
   end

@@ -35,8 +35,11 @@ module ActiveMerchant #:nodoc:
         super
       end
 
-      def purchase(money, payment, options={})
-        if options[:execute_threed] || options[:threed_dynamic]
+      def purchase(money, payment, options={}, use_network_token=false)
+        if use_network_token
+          @use_network_token = true
+          purchase_with_network_token(money, payment, options)
+        elsif options[:execute_threed] || options[:threed_dynamic]
           authorize(money, payment, options)
         else
           MultiResponse.run do |r|
@@ -45,6 +48,18 @@ module ActiveMerchant #:nodoc:
           end
         end
       end
+
+      def purchase_with_network_token(money, payment, options={})
+        post = init_post(options)
+        add_invoice(post, money, options)
+        add_payment(post, payment, options)
+        add_splits(post, options)
+        add_recurring_processing_model(post, options)
+        add_shopper_reference(post, options)
+        post[:returnUrl] = "https://your-company.com/"
+        commit('payments', post, options)
+      end
+
 
       def authorize(money, payment, options={})
         requires!(options, :order_id)
@@ -191,7 +206,9 @@ module ActiveMerchant #:nodoc:
       NETWORK_TOKENIZATION_CARD_SOURCE = {
         'apple_pay' => 'applepay',
         'android_pay' => 'androidpay',
-        'google_pay' => 'paywithgoogle'
+        'google_pay' => 'paywithgoogle',
+        'mastercard' => 'mc',
+        'visa' => 'visa'
       }
 
       def add_extra_data(post, payment, options)
@@ -339,6 +356,7 @@ module ActiveMerchant #:nodoc:
       end
 
       def add_card(post, credit_card)
+        # If credit_card.is_a?(NetworkTokenizationCreditCard) AND brand is Visa/MC, the type and brand fields need to be specified
         card = {
           expiryMonth: credit_card.month,
           expiryYear: credit_card.year,
@@ -350,6 +368,12 @@ module ActiveMerchant #:nodoc:
         card.delete_if { |k, v| v.blank? }
         card[:holderName] ||= 'Not Provided' if credit_card.is_a?(NetworkTokenizationCreditCard)
         requires!(card, :expiryMonth, :expiryYear, :holderName, :number)
+
+        if @use_network_token
+          card[:brand] = credit_card.brand
+          card[:type] = 'networkToken'
+          return post[:paymentMethod] = card
+        end
         post[:card] = card
       end
 
@@ -498,7 +522,9 @@ module ActiveMerchant #:nodoc:
       end
 
       def url(action)
-        if test?
+        if @use_network_token
+          'https://checkout-test.adyen.com/v51/payments'
+        elsif test?
           "#{test_url}#{endpoint(action)}"
         elsif @options[:subdomain]
           "https://#{@options[:subdomain]}-pal-live.adyenpayments.com/pal/servlet/#{endpoint(action)}"
