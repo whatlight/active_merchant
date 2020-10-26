@@ -14,7 +14,7 @@ module ActiveMerchant #:nodoc:
       STANDARD_ERROR_CODE_MAPPING = {}
 
       def initialize(options={})
-        requires!(options, :some_credential, :another_credential)
+        requires!(options, :private_key)
         super
       end
 
@@ -87,7 +87,7 @@ module ActiveMerchant #:nodoc:
 
       def commit(action, parameters)
         url = (test? ? test_url : live_url)
-        response = parse(ssl_post(url, post_data(action, parameters)))
+        response = parse(ssl_post(url, post_data(action, parameters), headers))
 
         Response.new(
           success_from(response),
@@ -117,6 +117,12 @@ module ActiveMerchant #:nodoc:
         unless success_from(response)
           # TODO: lookup error code for this response
         end
+      end
+      def headers
+        {
+            'Content-type'  => 'application/json',
+            'Authorization' => "Bearer #{@options[:private_key]}"
+        }
       end
     end
   end

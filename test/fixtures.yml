@@ -1246,8 +1246,7 @@ trust_commerce:
 
 # Working credentials, no need to replace
 unipaas:
-  some_credential: SOMECREDENTIAL
-  another_credential: ANOTHERCREDENTIAL
+  private_key: 'Sd78g6ds8g8dsggidsug778'
 
 # Working credentials, no need to replace
 usa_epay:
