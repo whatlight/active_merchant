@@ -2,14 +2,15 @@ require 'test_helper'
 
 class UnipaasTest < Test::Unit::TestCase
   def setup
-    @gateway = UnipaasGateway.new(some_credential: 'login', another_credential: 'password')
+    @gateway = UnipaasGateway.new(private_key: 'private_key')
     @credit_card = credit_card
     @amount = 100
 
     @options = {
-      order_id: '1',
-      billing_address: address,
-      description: 'Store Purchase'
+        order_id: '1',
+        billing_address: address,
+        email: 'test@example.com',
+        description: 'Store Purchase'
     }
   end
 
