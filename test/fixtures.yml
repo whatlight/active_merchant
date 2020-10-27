@@ -1246,7 +1246,7 @@ trust_commerce:
 
 # Working credentials, no need to replace
 unipaas:
-  private_key: 'Sd78g6ds8g8dsggidsug778'
+  private_key: 'testPrivateKey'
 
 # Working credentials, no need to replace
 usa_epay:
