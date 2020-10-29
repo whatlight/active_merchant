@@ -6,7 +6,6 @@ module ActiveMerchant #:nodoc:
       # self.test_url = 'http://localhost:3000/api'
       self.live_url = 'https://api.unipaas.com/api'
 
-      # self.supported_countries = ['US']
       self.supported_countries = %w[AT BE BG CY CZ DE DK EE GR ES FI FR GI HK HR HU IE IS IT LI LT LU LV MT MX NL NO PL PT RO SE SG SI SK GB US]
       self.default_currency = 'USD'
       self.supported_cardtypes = [:visa, :master, :american_express]
@@ -27,6 +26,8 @@ module ActiveMerchant #:nodoc:
         add_payment(post, payment)
         add_address(post, payment, options)
         add_customer_data(post, options)
+        post[:transactionType] = 'Sale'
+
         # logger&.warn post
 
         commit('sale', post)
@@ -38,21 +39,25 @@ module ActiveMerchant #:nodoc:
         add_payment(post, payment)
         add_address(post, payment, options)
         add_customer_data(post, options)
+        post[:transactionType] = 'Auth'
 
         commit('authonly', post)
       end
 
       def capture(money, authorization, options = {})
+        post = {}
         add_invoice(post, money, options)
         commit('capture', post, authorization)
       end
 
       def refund(money, authorization, options = {})
+        post = {}
         add_invoice(post, money, options)
         commit('refund', post, authorization)
       end
 
       def void(authorization, options = {})
+        post = {}
         commit('void', post, authorization)
       end
 
