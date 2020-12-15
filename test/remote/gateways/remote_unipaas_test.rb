@@ -27,6 +27,29 @@ class RemoteUnipaasTest < Test::Unit::TestCase
     assert_equal 'Success', response.message
   end
 
+  def test_successful_recurring_purchase_flow_with_token
+    store = @gateway.store(@credit_card, @options)
+    assert_success store
+
+    @rebil_options = {
+        is_rebill: true,
+    }
+
+    initial = @gateway.purchase(@amount, store.authorization,  @options.merge(@rebil_options))
+    assert_equal 'Success', initial.message
+
+    @initial_transaction_otptions = {
+        initial_transaction_id: initial.authorization,
+    }
+
+    second = @gateway.purchase(@amount, store.authorization,  @options.merge(@rebil_options).merge(@initial_transaction_otptions))
+    assert_equal 'Success', second.message
+
+    third = @gateway.purchase(@amount, store.authorization,  @options.merge(@rebil_options).merge(@initial_transaction_otptions))
+    assert_equal 'Success', third.message
+  end
+
+
   def test_successful_purchase_with_more_options
     options = {
         billing_address: address,
