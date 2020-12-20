@@ -31,21 +31,21 @@ class RemoteUnipaasTest < Test::Unit::TestCase
     store = @gateway.store(@credit_card, @options)
     assert_success store
 
-    @rebil_options = {
-        is_rebill: true,
+    @recurring_options = {
+        is_recurring: true,
     }
 
-    initial = @gateway.purchase(@amount, store.authorization,  @options.merge(@rebil_options))
+    initial = @gateway.purchase(@amount, store.authorization,  @options.merge(@recurring_options))
     assert_equal 'Success', initial.message
 
     @initial_transaction_otptions = {
         initial_transaction_id: initial.authorization,
     }
 
-    second = @gateway.purchase(@amount, store.authorization,  @options.merge(@rebil_options).merge(@initial_transaction_otptions))
+    second = @gateway.purchase(@amount, store.authorization,  @options.merge(@recurring_options).merge(@initial_transaction_otptions))
     assert_equal 'Success', second.message
 
-    third = @gateway.purchase(@amount, store.authorization,  @options.merge(@rebil_options).merge(@initial_transaction_otptions))
+    third = @gateway.purchase(@amount, store.authorization,  @options.merge(@recurring_options).merge(@initial_transaction_otptions))
     assert_equal 'Success', third.message
   end
 
